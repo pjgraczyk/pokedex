@@ -43,7 +43,20 @@ func createRegistry() map[string]cliCommand {
 		name:        "map",
 		description: "Lists all places",
 		callback: func() error {
-			data, err := api.FetchData(api.ApiBaseUrl, "location-area")
+			data, err := api.FetchData[api.LocationAreaResponse](api.ApiBaseUrl, "location-area")
+			if err != nil {
+				return err
+			}
+			for _, el := range data.Results {
+				fmt.Println(constants.Green + constants.Bold + el.Name + constants.Reset)
+			}
+			return nil
+		},
+	registry["explore"] = cliCommand{
+		name:        "explore",
+		description: "Explore a place given by map",
+		callback: func() error {
+			data, err := api.FetchData[api.LocationAreaResponse](api.ApiBaseUrl, "location-area")
 			if err != nil {
 				return err
 			}

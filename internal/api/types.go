@@ -1,13 +1,13 @@
 package api
 
-type Response struct {
-	Count    int      `json:"count"`
-	Next     string   `json:"next"`
-	Previous string   `json:"previous"`
-	Results  []Result `json:"results"`
+type LocationAreaResponse struct {
+	Count    int                  `json:"count"`
+	Next     string               `json:"next"`
+	Previous string               `json:"previous"`
+	Results  []LocationAreaResult `json:"results"`
 }
 
-type Result struct {
+type LocationAreaResult struct {
 	Name string `json:"name"`
 	Url  string `json:"url"`
 }

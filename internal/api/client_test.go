@@ -12,11 +12,11 @@ import (
 func TestFetchDataSuccess(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		response := Response{
+		response := LocationAreaResponse{
 			Count:    2,
 			Next:     "https://example.com/next",
 			Previous: "",
-			Results: []Result{
+			Results: []LocationAreaResult{
 				{Name: "location-1", Url: "https://example.com/1"},
 				{Name: "location-2", Url: "https://example.com/2"},
 			},
@@ -25,7 +25,7 @@ func TestFetchDataSuccess(t *testing.T) {
 	}))
 	defer server.Close()
 
-	data, err := FetchData(server.URL, "location-area")
+	data, err := FetchData[LocationAreaResponse](server.URL, "location-area")
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
 	}
@@ -51,9 +51,9 @@ func TestFetchDataWithQueryParams(t *testing.T) {
 			t.Errorf("Expected limit=20, got %s", query)
 		}
 
-		response := Response{
+		response := LocationAreaResponse{
 			Count: 1,
-			Results: []Result{
+			Results: []LocationAreaResult{
 				{Name: "test-location", Url: "https://example.com/test"},
 			},
 		}
@@ -61,7 +61,7 @@ func TestFetchDataWithQueryParams(t *testing.T) {
 	}))
 	defer server.Close()
 
-	data, err := FetchData(server.URL, "location-area", "limit=20")
+	data, err := FetchData[LocationAreaResponse](server.URL, "location-area", "limit=20")
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
 	}
@@ -72,7 +72,7 @@ func TestFetchDataWithQueryParams(t *testing.T) {
 }
 
 func TestFetchDataNetworkError(t *testing.T) {
-	data, err := FetchData("http://invalid-url-that-does-not-exist-12345.local", "location-area")
+	data, err := FetchData[LocationAreaResponse]("http://invalid-url-that-does-not-exist-12345.local", "location-area")
 
 	if err == nil {
 		t.Fatal("Expected error, got nil")
@@ -94,7 +94,7 @@ func TestFetchDataBadStatus(t *testing.T) {
 	}))
 	defer server.Close()
 
-	data, err := FetchData(server.URL, "location-area")
+	data, err := FetchData[LocationAreaResponse](server.URL, "location-area")
 
 	if err == nil {
 		t.Fatal("Expected error for bad status code, got nil")

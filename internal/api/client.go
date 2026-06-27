@@ -19,34 +19,40 @@ func buildURL(baseUrl, objectType string, args ...string) string {
 	return url
 }
 
-func FetchData(baseUrl, objectType string, args ...string) (Response, error) {
-	var data Response
+func FetchData[T any](baseUrl, objectType string, args ...string) (T, error) {
+	var data T
 	url := buildURL(baseUrl, objectType, args...)
 	res, err := http.Get(url)
 	if err != nil {
-		return Response{}, fmt.Errorf("Something went wrong! Err: %v", err)
+		return data, fmt.Errorf("Something went wrong! Err: %v", err)
 	}
 	defer res.Body.Close()
 
 	if res.StatusCode != http.StatusOK {
-		return Response{}, fmt.Errorf("bad status: %s", res.Status)
+		return data, fmt.Errorf("bad status: %s", res.Status)
 	}
 
-	json.NewDecoder(res.Body).Decode(&data)
+	err = json.NewDecoder(res.Body).Decode(&data)
+	if err != nil {
+		return data, fmt.Errorf("failed to decode JSON: %v", err)
+	}
 	return data, nil
 }
 
-func GetLocationAreas(cache *cache.Cache, args ...string) (Response, error) {
-	url := buildURL(ApiBaseUrl, "location-area", args...)
+func GetCachedData[T any](cache *cache.Cache, baseUrl, objectType string, args ...string) (T, error) {
+	var data T
+	url := buildURL(baseUrl, objectType, args...)
+
 	if cached, ok := cache.Get(url); ok {
-		var data Response
-		json.Unmarshal(cached, &data)
-		return data, nil
+		err := json.Unmarshal(cached, &data)
+		if err == nil {
+			return data, nil
+		}
 	}
 
-	data, err := FetchData(ApiBaseUrl, "location-area", args...)
+	data, err := FetchData[T](baseUrl, objectType, args...)
 	if err != nil {
-		return Response{}, err
+		return data, err
 	}
 
 	jsonData, err := json.Marshal(data)
